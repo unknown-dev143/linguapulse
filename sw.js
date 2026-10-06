@@ -1,10 +1,11 @@
 /* LinguaPulse service worker — offline app shell.
    Cross-origin requests (MyMemory / LibreTranslate / OpenAI) are left to the
    network; only our own static assets are cached so translations always stay fresh. */
-const CACHE = 'linguapulse-v1';
+const CACHE = 'linguapulse-v2';
 const ASSETS = [
   './', './index.html', './app.js', './styles.css',
   './manifest.webmanifest', './favicon.svg',
+  './icon-192.png', './icon-512.png',
 ];
 
 self.addEventListener('install', e => {

@@ -61,6 +61,9 @@ auto-detected as a Pages Function.
 - Headers in `_headers` (`frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`,
   `Referrer-Policy: no-referrer`, plus the full CSP) are applied by Cloudflare Pages automatically.
 
+**Canonical origin:** `https://linguapulse.pages.dev`. Register this exact URL as the OAuth redirect /
+callback URI at each provider (Google, Apple, GitHub, Discord) before sign-in will work.
+
 ### Netlify
 
 `netlify.toml` redirects `/api/github/*` to `netlify/functions/github-proxy.js`. Deploy the folder via
