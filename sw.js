@@ -1,7 +1,7 @@
 /* LinguaPulse service worker — offline app shell.
    Cross-origin requests (MyMemory / LibreTranslate / OpenAI) are left to the
    network; only our own static assets are cached so translations always stay fresh. */
-const CACHE = 'linguapulse-v2';
+const CACHE = 'linguapulse-v3';
 const ASSETS = [
   './', './index.html', './app.js', './styles.css',
   './manifest.webmanifest', './favicon.svg',
@@ -34,12 +34,18 @@ self.addEventListener('fetch', e => {
   }
   // stale-while-revalidate for static assets
   e.respondWith(
-    caches.match(req).then(cached =>
-      cached || fetch(req).then(resp => {
+    caches.match(req).then(async cached => {
+      if(cached) return cached;
+      try {
+        const resp = await fetch(req);
         const copy = resp.clone();
         caches.open(CACHE).then(c => c.put(req, copy));
         return resp;
-      }).catch(() => cached)
-    )
+      } catch(e) {
+        // offline + not cached: fall back to the app shell so respondWith
+        // never resolves with undefined (which throws a runtime error)
+        return (await caches.match('./index.html')) || Response.error();
+      }
+    })
   );
 });

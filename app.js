@@ -197,22 +197,33 @@ function letterScore(text){
 function detectLang(text){
   const t = (text || '').trim();
   if(!t) return 'en-US';
-  for(const [re, code] of SCRIPT_RE){
-    if(re.test(t)){
-      if(code) return code;
-      // Arabic-script block → disambiguate Persian / Urdu / Arabic
-      if(/[ٹڈڑےں]/.test(t)) return 'ur-PK';   // Urdu-specific letters (never in Arabic/Persian)
-      if(/[گژ]/.test(t)) return 'fa-IR';       // Persian gaf/zhe (never in Urdu/Arabic)
-      if(/[ہ]/.test(t)) return 'ur-PK';        // Urdu he (U+06C1) vs Arabic/Persian he (U+0647)
-      const arToks = t.replace(/[^؀-ۿ\s]/g, ' ').split(/\s+/).filter(Boolean);
-      if(['است','من','با','شما','که','را','این','آن','برای','خانه','ممنون','خداحافظ','روز','خوب'].some(w => arToks.includes(w))) return 'fa-IR';
-      return 'ar-SA';
-    }
-    // Cyrillic block → disambiguate (Russian is the default fallthrough)
+  // 1) script detection — each script is checked explicitly so the Cyrillic /
+  //    Arabic disambiguation only runs for the script that actually matched.
+  //    (The old loop fell through to 'ru-RU' on the first non-matching regex,
+  //    misdetecting every Latin/Arabic/Devanagari string as Russian.)
+  if(/[ぁ-んァ-ヶ]/.test(t)) return 'ja-JP';
+  if(/[가-힣]/.test(t)) return 'ko-KR';
+  if(/[ก-๛]/.test(t)) return 'th-TH';
+  if(/[ঀ-৿]/.test(t)) return 'bn-IN';
+  if(/[஀-௿]/.test(t)) return 'ta-IN';
+  if(/[ऀ-ॿ]/.test(t)) return 'hi-IN';
+  if(/[א-ת]/.test(t)) return 'he-IL';
+  if(/[一-鿿]/.test(t)) return 'zh-CN';
+  // Cyrillic → disambiguate (Russian is the default fallthrough)
+  if(/[Ѐ-ӿ]/.test(t)){
     if(/[ъЪ]/.test(t)) return 'bg-BG';                 // ъ → Bulgarian
     if(/[ќѓЌЃ]/.test(t)) return 'mk-MK';               // ќ,ѓ → Macedonian
     if(/[ћђџљњЋЂЏЉЊ]/.test(t)) return 'sr-RS';       // Serbian-Cyrillic-only letters
     return 'ru-RU';
+  }
+  // Arabic script → disambiguate Persian / Urdu / Arabic
+  if(/[؀-ۿ]/.test(t)){
+    if(/[ٹڈڑےں]/.test(t)) return 'ur-PK';   // Urdu-specific letters (never in Arabic/Persian)
+    if(/[گژ]/.test(t)) return 'fa-IR';       // Persian gaf/zhe (never in Urdu/Arabic)
+    if(/[ہ]/.test(t)) return 'ur-PK';        // Urdu he (U+06C1) vs Arabic/Persian he (U+0647)
+    const arToks = t.replace(/[^؀-ۿ\s]/g, ' ').split(/\s+/).filter(Boolean);
+    if(['است','من','با','شما','که','را','این','آن','برای','خانه','ممنون','خداحافظ','روز','خوب'].some(w => arToks.includes(w))) return 'fa-IR';
+    return 'ar-SA';
   }
   for(const [code, re] of UNIQ){ if(re.test(t)) return code; }
   const words = t.toLowerCase().split(/[^\p{L}]/u);   // any Unicode letter (keeps pl/cs/vi diacritic words intact)
@@ -1502,7 +1513,7 @@ function exportTranscript(){
     md += `## Speaker ${t.speaker} · ${src.label} → ${dst.label} · ${t.ts.toLocaleTimeString()}\n\n`;
     md += `- **Said:** ${t.orig}\n- **${dst.label}:** ${t.trans || '(no translation)'}\n`;
     if(t.feedback){
-      md += `- **Coach (${t.score}/100):**\n`;
+      md += `- **Coach (${t.feedback.score}/100):**\n`;
       if(t.feedback.fix) md += `  - Better: ${t.feedback.fix}\n`;
       (t.feedback.notes || []).forEach(nn => md += `  - ${nn}\n`);
     }
@@ -2209,7 +2220,7 @@ async function gunzipB64url(s){
 }
 async function shareTranscript(){
   if(!turns.length){ toast('Nothing to share yet','err'); return; }
-  const payload=turns.map(t=>({s:t.speaker,sc:t.srcCode,dc:t.dstCode,o:t.orig,tr:t.trans,f:t.feedback?{sc:t.feedback.score,n:t.feedback.notes,fx:t.feedback.fix}:null,ts:t.ts}));
+  const payload=turns.map(t=>({s:t.speaker,sc:t.srcCode,dc:t.dstCode,o:t.orig,tr:t.trans,f:t.feedback?{sc:t.feedback.score,n:t.feedback.notes,fx:t.feedback.fix,wp:t.feedback.wpm,wd:t.feedback.words,en:t.feedback.engine}:null,ts:t.ts}));
   const link=location.origin+location.pathname+'#t='+await gzipB64url(JSON.stringify(payload));
   try{ await navigator.clipboard.writeText(link); toast('Share link copied to clipboard','ok'); }
   catch(e){ window.prompt('Copy this share link:', link); }
@@ -2221,7 +2232,7 @@ function enterShareView(data){
   hideAuth(); document.body.classList.add('share-mode');
   $('orb').style.display='none'; $('captionBox').style.display='none';
   document.querySelector('.controls').style.display='none'; $('langbar').style.display='none';
-  turns=(Array.isArray(data)?data:[]).map((t,i)=>({ id:'sh'+i, speaker:t.s||'A', srcCode:t.sc||'en-US', dstCode:t.dc||'es-ES', orig:t.o||'', trans:t.tr||'', feedback:t.f?{score:t.f.sc,notes:t.f.n,fix:t.f.fx}:null, ts:t.ts||Date.now(), star:false, demo:true }));
+  turns=(Array.isArray(data)?data:[]).map((t,i)=>({ id:'sh'+i, speaker:t.s||'A', srcCode:t.sc||'en-US', dstCode:t.dc||'es-ES', orig:t.o||'', trans:t.tr||'', feedback:t.f?{score:t.f.sc,notes:t.f.n,fix:t.f.fx,fixLabel:'',gloss:'',wpm:t.f.wp||0,words:t.f.wd||0,engine:t.f.en||'local'}:null, ts:t.ts||Date.now(), star:false, demo:true }));
   // inject a share banner
   let banner=document.getElementById('shareBanner');
   if(!banner){ banner=document.createElement('div'); banner.id='shareBanner'; banner.className='share-banner'; document.querySelector('.app').prepend(banner); }
