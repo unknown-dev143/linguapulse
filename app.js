@@ -1695,12 +1695,39 @@ function wire(){
     bd.addEventListener('click', e => { if(e.target === bd) bd.hidden = true; });
   });
 
+  // ---- keyboard shortcuts (desktop-friendly) ----
+  const isTyping = () => { const t = document.activeElement; return t && /INPUT|SELECT|TEXTAREA/.test(t.tagName); };
   document.addEventListener('keydown', e => {
-    if(e.code === 'Space' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){
+    const ae = document.activeElement;
+    if(e.key === 'Escape'){ $('settingsModal').hidden = true; $('langModal').hidden = true; return; }
+    if(isTyping()) return;
+    if(e.code === 'Space' && ae.tagName !== 'BUTTON'){
       e.preventDefault(); listening ? stopListening() : startListening();
-    }
-    if(e.key === 'Escape'){ $('settingsModal').hidden = true; $('langModal').hidden = true; }
+    } else if(e.key === 's' || e.key === 'S'){ $('swapBtn').click(); }
+    else if(e.key === 't' || e.key === 'T'){ $('themeBtn').click(); }
+    else if(e.key === 'd' || e.key === 'D'){ if(!demoRunning) $('demoBtn').click(); }
   });
+
+  // ---- PWA install ----
+  let deferredPrompt = null;
+  const installBtn = $('installBtn');
+  if(installBtn){
+    if(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) installBtn.hidden = true;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.hidden = false;
+    });
+    installBtn.addEventListener('click', async () => {
+      if(!deferredPrompt) return;
+      deferredPrompt.prompt();
+      try{ const { outcome } = await deferredPrompt.userChoice; if(outcome === 'accepted') toast('Installing LinguaPulse…','ok'); }
+      catch(err){ /* user dismissed — no-op */ }
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    });
+    window.addEventListener('appinstalled', () => { installBtn.hidden = true; toast('LinguaPulse installed','ok'); });
+  }
 
   applyMicEnabled();
   refreshMicPerm();

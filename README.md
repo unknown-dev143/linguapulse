@@ -91,11 +91,14 @@ mic  →  SpeechRecognition (continuous, interim results)
 - **Auto-speak** — read the translation aloud (mic pauses during playback to avoid echo)
 - **Turn-taking** — automatically switch recognition language after each turn
 - **Coach feedback** — the correction + fluency score block
-- **Demo** — scripted 4-turn restaurant conversation; works with no mic and no network
+- **Demo** — scripted 4-turn restaurant conversation; works with no mic and no network (or press `D`)
 - **Export** — download the transcript as Markdown
 - **Share** — copy a backend-free link to the transcript (gzip + base64url in the URL, opens read-only)
+- **Install** — appears in the top bar when the browser offers it; adds LinguaPulse as a standalone desktop/mobile app (PWA)
 - **Profile** — switch between accounts stored on this device, add a passkey, pick an avatar
 - **Accent theme** — five recolorings of the orb/spectrum (aurora / ocean / forest / sunset / mono)
+
+**Keyboard shortcuts (desktop/laptop):** `Space` start/stop · `S` swap languages · `T` toggle light/dark theme · `D` run demo · `Esc` close any dialog.
 
 ## Translation engines
 
