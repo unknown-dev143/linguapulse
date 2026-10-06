@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LinguaPulse — Signing you in…</title>
+<style>
+  html,body{margin:0;height:100%;font-family:"Inter",system-ui,Segoe UI,Roboto,sans-serif}
+  body{display:grid;place-items:center;background:#0c0a18;color:#cbb9ff;text-align:center;padding:20px}
+  .box{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .spin{width:34px;height:34px;border-radius:50%;border:3px solid rgba(167,139,250,.25);border-top-color:#a78bfa;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  p{margin:0;font-size:13px;opacity:.85}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="spin"></div>
+    <p>Completing sign-in…</p>
+  </div>
+  <!-- Loaded as a same-origin external script so it runs under our strict CSP (script-src 'self'). -->
+  <script src="oauth-callback.js"></script>
+</body>
+</html>

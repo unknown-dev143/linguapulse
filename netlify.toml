@@ -1,0 +1,8 @@
+[build]
+  functions = "netlify/functions"
+
+# Expose the GitHub CORS proxy at /api/github/* (used as the app's "GitHub CORS proxy" base URL).
+[[redirects]]
+  from = "/api/github/*"
+  to = "/.netlify/functions/github-proxy/:splat"
+  status = 200

@@ -1,0 +1,15 @@
+{
+  "name": "LinguaPulse — Live Conversation Translator",
+  "short_name": "LinguaPulse",
+  "description": "Real-time conversation translator with spoken feedback and coaching, right in your browser.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#08070f",
+  "theme_color": "#08070f",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https:; manifest-src 'self';">
+<meta name="theme-color" content="#08070f">
+<title>LinguaPulse — Real-time Conversation Translator</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<meta name="description" content="LinguaPulse — a real-time conversation translator that listens, translates, and coaches you in the language you're learning. Runs entirely in your browser.">
+<meta property="og:title" content="LinguaPulse — Live Conversation Translator">
+<meta property="og:description" content="Speak, get an instant translation, and coaching feedback in the target language. Runs entirely in your browser.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="favicon.svg">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ DEPLOY / SUPPORT BANNER ============ -->
+  <div class="deploy-banner" id="deployBanner" hidden>
+    <span class="db-ico" id="deployBannerIco">⚠️</span>
+    <span id="deployBannerText"></span>
+  </div>
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <span class="bm-bar"></span><span class="bm-bar"></span><span class="bm-bar"></span>
+      </div>
+      <div class="brand-text">
+        <strong>LinguaPulse</strong>
+        <small>live conversation translator + coach</small>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="demoBtn" title="Play a scripted demo conversation">Demo</button>
+      <button class="icon-btn" id="exportBtn" title="Export transcript as Markdown">Export</button>
+      <button class="icon-btn" id="shareBtn" title="Create a shareable link to this transcript">Share</button>
+      <button class="icon-btn" id="profileBtn" title="Your profile" aria-label="Profile">
+        <span class="profile-dot" id="profileDot">LP</span>
+      </button>
+      <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="3.2"/>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-2.87 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 6.17 19.4l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 3 13.7H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 6.17l-.06-.06A2 2 0 1 1 7.37 3.28l.06.06A1.7 1.7 0 0 0 9.3 3.6H9.4a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.87 1.2l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 20.4 9.3v.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.2 1.6z"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="themeBtn" title="Toggle light / dark theme" aria-label="Toggle theme">☀️</button>
+    </div>
+  </header>
+
+  <!-- ============ LANGUAGE BAR ============ -->
+  <div class="langbar" id="langbar">
+    <button class="lang-chip" id="langA" data-slot="A">
+      <span class="lc-flag" id="flagA">🇬🇧</span>
+      <span class="lc-meta">
+        <small>Speaker A</small>
+        <strong id="labelA">English</strong>
+      </span>
+      <svg class="lc-caret" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+
+    <button class="swap-btn" id="swapBtn" title="Swap languages" aria-label="Swap languages">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 4v13M7 4L4 7.5M7 4l3 3.5M17 20V7M17 20l3-3.5M17 20l-3-3.5"/>
+      </svg>
+    </button>
+
+    <button class="lang-chip" id="langB" data-slot="B">
+      <span class="lc-flag" id="flagB">🇪🇸</span>
+      <span class="lc-meta">
+        <small>Speaker B</small>
+        <strong id="labelB">Spanish</strong>
+      </span>
+      <svg class="lc-caret" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+  </div>
+
+  <!-- ============ STAGE (the orb) ============ -->
+  <main class="stage">
+    <div class="orb-wrap">
+      <div class="orb-glow" id="orbGlow"></div>
+
+      <div class="orb" id="orb" data-state="idle">
+        <div class="pulse pulse-1"></div>
+        <div class="pulse pulse-2"></div>
+        <div class="pulse pulse-3"></div>
+
+        <svg class="spectrum" viewBox="0 0 320 320" aria-hidden="true">
+          <defs>
+            <linearGradient id="specGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="var(--spec1,#a78bfa)"/>
+              <stop offset="55%" stop-color="var(--spec2,#e879f9)"/>
+              <stop offset="100%" stop-color="var(--spec3,#fbbf24)"/>
+            </linearGradient>
+          </defs>
+          <g id="spectrumGroup"></g>
+        </svg>
+
+        <button class="orb-btn" id="micBtn" aria-label="Start listening">
+          <span class="orb-btn-inner">
+            <svg class="mic-icon" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <rect x="9" y="3" width="6" height="11" rx="3"/>
+              <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/>
+            </svg>
+            <svg class="stop-icon" viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
+              <rect x="7" y="7" width="10" height="10" rx="2.5"/>
+            </svg>
+          </span>
+          <span class="orb-status" id="orbStatus">Tap to listen</span>
+          <span class="rec-dot"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- live caption ticker -->
+    <div class="caption-box" id="captionBox" data-empty="true">
+      <span class="caption-dot"></span>
+      <p id="liveCaption">Waiting for audio…</p>
+    </div>
+
+    <!-- live mic level meter (shown while listening with "real mic levels" on) -->
+    <div class="mic-meter" id="micMeterWrap" hidden><div class="mic-meter-fill" id="micMeter"></div></div>
+
+    <!-- history locked banner (shown after reload until a password account re-authenticates) -->
+    <div class="history-lock" id="historyLock" hidden>
+      <span class="hl-lock">🔒</span>
+      <span class="hl-text">Your past conversations are encrypted. <button type="button" class="link-btn" id="unlockHistoryBtn">Sign in to unlock</button></span>
+    </div>
+
+    <!-- control row -->
+    <div class="controls">
+      <button class="toggle is-on" id="autoSpeakToggle" data-on="true">
+        <span class="tg-dot"></span> Auto-speak
+      </button>
+      <button class="toggle is-on" id="autoTurnToggle" data-on="true">
+        <span class="tg-dot"></span> Turn-taking
+      </button>
+      <button class="toggle is-on" id="coachToggle" data-on="true">
+        <span class="tg-dot"></span> Coach feedback
+      </button>
+      <button class="toggle" id="clearBtn" data-action="clear">
+        <span class="tg-dot"></span> Clear
+      </button>
+    </div>
+
+    <div class="hint" id="hint">
+      Tip: press <kbd>Space</kbd> to start/stop. Tap a language chip to say who's speaking — turn-taking auto-switches after each reply. Best in Chrome or Edge.
+    </div>
+  </main>
+
+  <!-- ============ FEED ============ -->
+  <section class="feed-wrap">
+    <div class="feed-head">
+      <h2>Conversation</h2>
+      <div class="feed-tools">
+        <input id="feedSearch" class="feed-search" type="text" placeholder="Search transcript…">
+        <button id="favFilter" class="ghost-btn sm" type="button" title="Show only starred turns">☆ Favorites</button>
+      </div>
+      <span class="feed-count" id="feedCount">0 turns</span>
+    </div>
+    <div class="feed" id="feed">
+      <div class="empty-state" id="emptyState">
+        <div class="es-rings"><span></span><span></span><span></span></div>
+        <h3>No turns yet</h3>
+        <p>Hit the orb and start talking. Each turn shows what you said, the translation, and coaching feedback written in the language you're translating <em>into</em>.</p>
+        <button class="ghost-btn" id="demoBtn2">Run a demo conversation</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ SETTINGS MODAL ============ -->
+<div class="modal-backdrop" id="settingsModal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Settings</h3>
+      <button class="icon-btn" id="closeSettings" aria-label="Close">✕</button>
+    </div>
+
+    <form id="settingsForm" novalidate>
+    <div class="modal-body">
+      <div class="field">
+        <label>Translation engine</label>
+        <select id="providerSelect">
+          <option value="free">Free (MyMemory) — no key needed</option>
+          <option value="openai">OpenAI-compatible API (better + smarter coaching)</option>
+        </select>
+        <p class="field-help">The free engine needs no setup. An API key unlocks higher-quality translation and AI-written coaching notes in any language.</p>
+      </div>
+
+      <div class="field field-test">
+        <label>Connection test</label>
+        <button type="button" class="ghost-btn sm" id="testTransBtn">Test translation engine</button>
+        <span id="testTransResult" class="test-result"></span>
+        <p class="field-help">Runs a short sample through your current engine so you know it works before going live.</p>
+      </div>
+
+      <div id="llmFields" hidden>
+        <div class="field">
+          <label>Base URL</label>
+          <input id="baseUrlInput" type="text" placeholder="https://api.openai.com/v1">
+        </div>
+        <div class="field">
+          <label>Model</label>
+          <input id="modelInput" type="text" placeholder="gpt-4o-mini">
+        </div>
+        <div class="field">
+          <label>API key</label>
+          <input id="apiKeyInput" type="password" placeholder="sk-…">
+          <p class="field-help">Stored only in this browser's localStorage. Never sent anywhere except the endpoint above.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Feedback style</label>
+        <select id="feedbackStyleSelect">
+          <option value="balanced">Balanced — corrections + encouragement</option>
+          <option value="strict">Strict — fix everything</option>
+          <option value="gentle">Gentle — encouragement first</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Playback speed (pronunciation practice)</label>
+        <select id="ttsRateSelect">
+          <option value="0.7">Slow · 0.7×</option>
+          <option value="0.85">Relaxed · 0.85×</option>
+          <option value="1">Normal · 1×</option>
+          <option value="1.2">Fast · 1.2×</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Pause before committing a turn</label>
+        <select id="silenceSelect">
+          <option value="600">Short · 0.6s</option>
+          <option value="900">Normal · 0.9s</option>
+          <option value="1200">Relaxed · 1.2s</option>
+          <option value="1500">Slow · 1.5s</option>
+        </select>
+        <p class="field-help">How long LinguaPulse waits for silence before sending your sentence for translation. Lengthen it if you often pause mid-sentence.</p>
+      </div>
+
+      <div class="field">
+        <label>Accent theme</label>
+        <select id="accentSelect">
+          <option value="aurora">Aurora (violet → magenta → amber)</option>
+          <option value="ocean">Ocean (blue → cyan)</option>
+          <option value="forest">Forest (green → teal)</option>
+          <option value="sunset">Sunset (pink → orange)</option>
+          <option value="mono">Mono (slate)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Sign-in providers (OAuth client IDs)</label>
+        <p class="field-help">For Google / Apple / GitHub / Discord sign-in. Register a free OAuth client and paste its ID here — the buttons stay disabled until a matching ID is set. These are stored only in this browser.</p>
+        <input id="googleClientId" type="text" placeholder="Google client ID (e.g. 123.apps.googleusercontent.com)" autocomplete="off">
+        <input id="appleClientId" type="text" placeholder="Apple Services ID (e.g. com.you.linguapulse)" autocomplete="off">
+        <input id="githubClientId" type="text" placeholder="GitHub client ID" autocomplete="off">
+        <input id="discordClientId" type="text" placeholder="Discord client ID" autocomplete="off">
+        <input id="githubProxy" type="text" placeholder="GitHub CORS proxy (e.g. https://you.pages.dev/api/github)" autocomplete="off">
+        <p class="field-help">GitHub blocks browser CORS on its sign-in endpoints, so client-side GitHub login needs a tiny proxy. Deploy the included <code>functions/api/github/</code> (Cloudflare Pages Function) or <code>netlify/functions/github-proxy.js</code> and paste its base URL above (e.g. <code>https://you.pages.dev/api/github</code>). Leave blank to keep the GitHub button disabled. Google / Apple / Discord / Passkey need no proxy.</p>
+      </div>
+
+      <div class="field">
+        <label>Speech recognition language for speaker A</label>
+        <select id="langASelect"></select>
+      </div>
+      <div class="field">
+        <label>Speech recognition language for speaker B</label>
+        <select id="langBSelect"></select>
+      </div>
+
+      <div class="field">
+        <label>Microphone access</label>
+        <div class="mic-perm">
+          <span class="mic-perm-dot" id="micPermDot"></span>
+          <span id="micPermText">Checking…</span>
+          <button type="button" class="ghost-btn sm" id="micRequestBtn">Request / re-enable</button>
+        </div>
+        <p class="field-help" id="micPermHelp">LinguaPulse uses your microphone only to translate the conversation in this tab. Nothing is recorded or sent anywhere except your chosen translation endpoint.</p>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" id="micEnabledCheck" checked>
+        <span>Enable microphone (turn off to use Demo mode only)</span>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="micLevelsCheck">
+        <span>Use real microphone levels for the visualiser (may conflict with recognition on some devices)</span>
+      </label>
+    </div>
+
+    <div class="modal-foot">
+      <button class="ghost-btn" id="resetBtn" type="button">Reset everything</button>
+      <button class="primary-btn" id="saveSettings" type="submit">Save</button>
+    </div>
+    </form>
+  </div>
+</div>
+
+<!-- language picker sheet -->
+<div class="modal-backdrop" id="langModal" hidden>
+  <div class="modal modal-sheet">
+    <div class="modal-head">
+      <h3 id="langModalTitle">Choose a language</h3>
+      <button class="icon-btn" id="closeLang" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <input class="search-input" id="langSearch" type="text" placeholder="Search languages…">
+      <div class="lang-list" id="langList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div class="auth-screen" id="authScreen" hidden>
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark">
+        <span class="bm-bar"></span><span class="bm-bar"></span><span class="bm-bar"></span>
+      </div>
+      <h1>LinguaPulse</h1>
+      <p>Live conversation translator + coach</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" type="button">Log in</button>
+      <button class="auth-tab" id="tabSignup" type="button">Sign up</button>
+    </div>
+
+    <form class="auth-form" id="loginForm" novalidate>
+      <label>Email
+        <input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      </label>
+      <label>Password
+        <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••">
+      </label>
+      <button class="primary-btn" type="submit">Log in</button>
+      <p class="auth-err" id="loginErr"></p>
+    </form>
+
+    <form class="auth-form" id="signupForm" novalidate hidden>
+      <label>Name
+        <input id="signName" type="text" autocomplete="name" placeholder="Your name">
+      </label>
+      <label>Email
+        <input id="signEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      </label>
+      <label>Password
+        <input id="signPass" type="password" autocomplete="new-password" placeholder="At least 6 characters">
+      </label>
+      <label>Confirm password
+        <input id="signPass2" type="password" autocomplete="new-password" placeholder="Re-enter password">
+      </label>
+      <button class="primary-btn" type="submit">Create account</button>
+      <p class="auth-err" id="signErr"></p>
+    </form>
+
+    <div class="auth-divider"><span>or continue with</span></div>
+    <div class="auth-sso">
+      <button class="sso-btn" id="ssoGoogle" type="button" data-provider="google">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z"/></svg>
+        Google</button>
+      <button class="sso-btn" id="ssoApple" type="button" data-provider="apple">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#111" d="M16.37 12.78c.03 2.9 2.55 3.86 2.58 3.87-.02.07-.4 1.37-1.33 2.7-1.06 1.18-2.16 2.36-3.9 2.32-1.7-.05-2.24-1-4.18-1-1.94 0-2.55 1-4.14 1.05-1.66.1-2.93-1.66-3.99-2.84-2.17-2.98-2.42-6.47-1.07-8.32 1.2-1.6 3.06-2.56 4.76-2.59 1.7-.03 2.4 1.1 3.9 1.1 1.5 0 2.32-1.1 3.9-1.13 1.4-.03 2.93.78 4.01 2.12-3.36 1.83-2.92 6.06.88 7.8zM14.3 4.8c.74-.9 1.24-2.15 1.1-3.4-1.21.05-2.55.83-3.4 1.74-.72.83-1.36 2.12-1.18 3.34 1.32.1 2.57-.66 3.48-1.68z"/></svg>
+        Apple</button>
+      <button class="sso-btn" id="ssoGithub" type="button" data-provider="github">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#24292e" d="M12 1.5a10.5 10.5 0 0 0-3.32 20.46c.53.1.72-.23.72-.5v-1.76c-2.92.63-3.54-1.4-3.54-1.4-.48-1.22-1.17-1.55-1.17-1.55-.95-.65.07-.64.07-.64 1.06.07 1.61 1.09 1.61 1.09.94 1.6 2.46 1.14 3.06.87.1-.68.37-1.14.67-1.4-2.33-.27-4.78-1.16-4.78-5.18 0-1.14.41-2.08 1.08-2.81-.11-.27-.47-1.34.1-2.8 0 0 .88-.28 2.88 1.07a9.9 9.9 0 0 1 5.24 0c2-1.35 2.88-1.07 2.88-1.07.57 1.46.21 2.53.1 2.8.68.73 1.08 1.67 1.08 2.81 0 4.03-2.46 4.9-4.8 5.16.38.33.71.97.71 1.96v2.9c0 .28.19.61.73.5A10.5 10.5 0 0 0 12 1.5z"/></svg>
+        GitHub</button>
+      <button class="sso-btn" id="ssoDiscord" type="button" data-provider="discord">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#5865F2" d="M20.3 4.5A19 19 0 0 0 15.4 3l-.25.5a14 14 0 0 1 3.9 1.4 13.6 13.6 0 0 0-11.2 0A14 14 0 0 1 11.85 3.5L11.6 3a19 19 0 0 0-4.9 1.5C3.3 9.2 2.2 13.7 2.7 18.1a19 19 0 0 0 5.8 2.9l.7-1.1a12 12 0 0 1-1.9-.9l.46-.36a13.5 13.5 0 0 0 11.5 0l.46.36c-.6.36-1.24.66-1.9.9l.7 1.1a19 19 0 0 0 5.8-2.9c.6-5-.1-9.46-3-13.6zM9.1 15.4c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm5.8 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/></svg>
+        Discord</button>
+      <button class="sso-btn sso-passkey" id="ssoPasskey" type="button">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2a4 4 0 0 0-4 4v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V6a4 4 0 0 0-4-4zm-2 6V6a2 2 0 0 1 4 0v2h-4zm9 4h-2v-1a2 2 0 1 0-2 2h-1a1 1 0 1 1 1 1h.5a2.5 2.5 0 1 0 2.5-2z"/></svg>
+        Passkey</button>
+    </div>
+
+    <button class="ghost-btn auth-guest" id="guestBtn" type="button">Continue as guest</button>
+
+    <div class="auth-stats" id="authStats" hidden>
+      <div class="auth-stats-head">This device</div>
+      <div class="profile-stats">
+        <div><strong id="authTurns">0</strong><span>turns</span></div>
+        <div><strong id="authLangs">0</strong><span>languages</span></div>
+        <div><strong id="authStreak">0</strong><span>day streak</span></div>
+      </div>
+      <p class="auth-foot" style="margin:0">Saved locally on this device — visible before you sign in.</p>
+    </div>
+
+    <p class="auth-foot">Accounts are stored locally on this device only — no server, no tracking.</p>
+  </div>
+</div>
+
+<!-- ============ PROFILE MODAL ============ -->
+<div class="modal-backdrop" id="profileModal" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Your profile</h3>
+      <button class="icon-btn" id="closeProfile" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body" id="profileBody"><!-- filled by JS --></div>
+    <div class="modal-foot" id="profileFoot"><!-- filled by JS --></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

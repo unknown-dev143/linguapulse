@@ -1,0 +1,12 @@
+# LinguaPulse — deploy-time security headers.
+# Netlify and Cloudflare Pages both read this file. When a CSP is delivered via
+# an HTTP header it takes precedence over the <meta> CSP, so the full policy is
+# reproduced here (plus frame-ancestors 'none' to block clickjacking) rather than
+# just the added directive. Hosts that ignore _headers (e.g. GitHub Pages) fall
+# back to the <meta> CSP, which still protects against XSS — only the
+# frame-ancestors hardening is missing there.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https:; manifest-src 'self'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
