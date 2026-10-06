@@ -31,6 +31,47 @@ Open `http://localhost:5173` in **Chrome or Edge**.
 If it opens in the built-in preview panel and the mic is blocked, open the same URL in a real
 browser tab — preview iframes usually don't grant microphone access.
 
+## Deploy
+
+The app is a static PWA plus one optional Cloudflare Pages Function
+(`functions/api/github/[[catchall]].js`) that proxies GitHub's CORS-blocked sign-in endpoints.
+
+### Cloudflare Pages — recommended (permanent URL + same-domain GitHub proxy)
+
+Hosting here gives you a **stable** `*.pages.dev` URL (the WorkBuddy publish link reassigns a new
+subdomain on every publish) and the GitHub proxy on the **same domain** as the app, so no extra
+CSP configuration is needed.
+
+```bash
+# 1. log in (opens a browser — needs your Cloudflare account)
+npx wrangler login
+
+# 2. deploy the whole folder (static assets + functions/)
+npx wrangler pages deploy . --project-name linguapulse
+```
+
+`wrangler.toml` (`name = "linguapulse"`, `pages_build_output_dir = "."`) is picked up automatically.
+The site goes live at `https://linguapulse.pages.dev`. The included `functions/` folder is
+auto-detected as a Pages Function.
+
+- **Enable GitHub sign-in** (optional): Settings → "GitHub CORS proxy" = `https://linguapulse.pages.dev/api/github`,
+  plus your GitHub OAuth **client ID** in Settings → "SSO client IDs". The button enables once both are set.
+- **Alternative — connect the git repo:** Cloudflare dashboard → *Workers & Pages → Create → Pages →
+  Connect to Git*, pick `unknown-dev143/linguapulse`, build command **empty**, output directory **`.`**.
+- Headers in `_headers` (`frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: no-referrer`, plus the full CSP) are applied by Cloudflare Pages automatically.
+
+### Netlify
+
+`netlify.toml` redirects `/api/github/*` to `netlify/functions/github-proxy.js`. Deploy the folder via
+the dashboard or `netlify deploy --prod`. GitHub proxy URL: `https://<site>/.netlify/functions/github-proxy`.
+
+### GitHub Pages
+
+Push to a repo and enable Pages on the branch. `index.html`'s `<meta>` CSP still protects against XSS,
+but `_headers` is ignored by GitHub Pages, so `frame-ancestors` hardening is missing and GitHub sign-in
+needs an external proxy.
+
 ## How a turn flows
 
 ```
