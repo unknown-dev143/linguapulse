@@ -62,9 +62,13 @@ auto-detected as a Pages Function.
   | Field | Value |
   |---|---|
   | Framework preset | **None** |
-  | Build command | **empty** |
-  | Deploy command | **empty** |
+  | Build command | *(leave the field blank — no text at all)* |
+  | Deploy command | *(leave the field blank — no text at all)* |
   | Build output directory | **`.`** |
+
+  > ⚠️ "Blank" means an **empty input box**. Do not type the word `empty` into the field —
+  > Cloudflare runs whatever is in that box as a shell command, so it would fail with
+  > `/bin/sh: 1: empty: not found`.
 
 - Headers in `_headers` (`frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`,
   `Referrer-Policy: no-referrer`, plus the full CSP) are applied by Cloudflare Pages automatically.
@@ -81,6 +85,15 @@ clear the **Deploy command** (and leave **Build command** empty, **output direct
 
 If you'd rather keep a deploy command, the correct one is `npx wrangler pages deploy .` — never
 `npx wrangler deploy`.
+
+#### Troubleshooting: `/bin/sh: 1: empty: not found`
+
+The **Deploy command** box contains the literal text `empty` (or any placeholder word). Cloudflare
+executes that box as a shell command. Clear it so the input is completely blank, or — if the UI won't
+save an empty value — put `npx wrangler pages deploy .` there instead.
+
+Rule of thumb: whatever you type into *Build command* / *Deploy command* is run by `/bin/sh`.
+Only real commands belong there.
 
 **Canonical origin:** `https://linguapulse.pages.dev`. Register this exact URL as the OAuth redirect /
 callback URI at each provider (Google, Apple, GitHub, Discord) before sign-in will work.
