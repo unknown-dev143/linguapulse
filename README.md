@@ -51,10 +51,12 @@ npx wrangler pages deploy . --project-name linguapulse
 ```
 
 No `wrangler.toml` is needed (and this repo deliberately does not ship one — see the troubleshooting
-notes below). The site goes live at `https://linguapulse.pages.dev`, and the included `functions/`
+notes below). The site goes live at **`https://linguapulse-1pg.pages.dev`** (Cloudflare appends a
+suffix if the bare project name is taken — check the dashboard for your actual URL), and the included
+`functions/`
 folder is auto-detected as a Pages Function.
 
-- **Enable GitHub sign-in** (optional): Settings → "GitHub CORS proxy" = `https://linguapulse.pages.dev/api/github`,
+- **Enable GitHub sign-in** (optional): Settings → "GitHub CORS proxy" = `https://linguapulse-1pg.pages.dev/api/github`,
   plus your GitHub OAuth **client ID** in Settings → "SSO client IDs". The button enables once both are set.
 > ✅ **Use the CLI commands above — do not use "Connect to Git".** Git-connected builds run your
 > deploy command with a restricted build token that cannot write to Pages (see the `10000`
@@ -107,8 +109,10 @@ then accepted normally. (This repo ships no `wrangler.toml`, so nothing should b
 Rule of thumb: whatever you type into *Build command* / *Deploy command* is run by `/bin/sh`.
 Only real commands belong there — never placeholders like `empty`, `none` or `n/a`.
 
-**Canonical origin:** `https://linguapulse.pages.dev`. Register this exact URL as the OAuth redirect /
-callback URI at each provider (Google, Apple, GitHub, Discord) before sign-in will work.
+**Canonical origin:** `https://linguapulse-1pg.pages.dev`. Register this exact URL as the OAuth
+redirect / callback URI at each provider (Google, Apple, GitHub, Discord) before sign-in will work.
+(Use the Cloudflare project URL, not the per-deployment `https://e3f96ed7.linguapulse-1pg.pages.dev`
+— that one is pinned to a single deployment and stops updating.)
 
 ### Netlify
 

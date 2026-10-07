@@ -9,8 +9,30 @@
 ## 1. Live deployment & accessibility
 
 - **Live URL:** `https://11f551f67c4748b793571a5790b8af76.sg.agentos-app.run` → **HTTP 200**, publicly reachable, no auth wall. Anyone with the link can open and use it. This build includes the mic-translation enhancements (silence tuning, live mic meter, recognition recovery), the three fixes from 2026-10-06 (proxy-aware GitHub sign-in, history-lock reload UX, `frame-ancestors` header), the 2026-10-06 UI pass (PWA Install button, desktop keyboard shortcuts + focus rings + sizing polish), PNG app icons (192/512), and the five 2026-10-07 bug fixes (auto-detect no longer returns `ru-RU` for every language, export/shared coach score & wpm fields, iOS apple-touch-icon, service-worker offline crash).
-- **Recommended stable origin:** once deployed to Cloudflare Pages, use `https://linguapulse.pages.dev` everywhere (OAuth redirect URIs, README, links shared with others). The WorkBuddy link reassigns the subdomain on every publish, so it is not a permanent home.
-- **Previous links `be9a30b4…`, `eda0eef5…`, `ceb376daf…`, `22708a3d…`, and `d0d356c0…` are dead** (the platform reassigns the subdomain on each publish).
+- **Canonical origin (live on Cloudflare Pages):** `https://linguapulse-1pg.pages.dev` → **HTTP 200**.
+  This is now the permanent home: use it for OAuth redirect URIs, README links and anything shared.
+  (The project was named `linguapulse-1pg` because the bare `linguapulse` name was already taken on
+  Cloudflare Pages; the per-deployment URL `https://e3f96ed7.linguapulse-1pg.pages.dev` also works but
+  points at one specific deployment, so prefer the project URL above.)
+- **Secondary preview:** `https://11f551f67c4748b793571a5790b8af76.sg.agentos-app.run` (WorkBuddy) is
+  still up, but it reassigns its subdomain on every publish — treat it as disposable.
+- **Previous links `be9a30b4…`, `eda0eef5…`, `ceb376daf…`, `22708a3d…`, and `d0d356c0…` are dead.**
+
+### Post-deploy verification against `https://linguapulse-1pg.pages.dev` (2026-10-07)
+
+| Check | Result |
+|---|---|
+| Site root | **200** |
+| `_headers` applied | **PASS** — `content-security-policy` (incl. `frame-ancestors 'none'`), `referrer-policy: no-referrer`, `x-content-type-options: nosniff` all present |
+| `app.js` fixes served | **PASS** — rewritten `detectLang`, `t.feedback.score`, `wd:` share payload, `beforeinstallprompt` all present |
+| `sw.js` | **PASS** — `linguapulse-v3` |
+| `apple-touch-icon` | **PASS** — `icon-192.png` |
+| `installBtn` in HTML | **PASS** |
+| Icons / manifest / `oauth-callback.html` | **PASS** — all 200 |
+| GitHub proxy Function | **PASS** — `OPTIONS /api/github/login/device/code` → `204` with `Access-Control-Allow-Origin: *`; `POST` returns byte-identical `{"error":"Not Found"}` to a direct github.com call (GitHub's own response to an invalid `client_id`), and `/api/github/` forwards to github.com with 200. Confirms the Function deployed and is proxying correctly. |
+
+Note: Cloudflare Pages 308-redirects `*.html` to extensionless paths (`/index.html` → `/`). Health
+checks must follow redirects (`curl -L`) or they will read the redirect body instead of the document.
 - The app is a static client-side bundle; "accessible by other users" = the link is public. No server/backend processes requests.
 
 ---
@@ -36,10 +58,10 @@
 | A1 | Low | **Clickjacking** | `frame-ancestors` cannot be set from a `<meta>` CSP; it must come from an HTTP response header. **Fix shipped:** a `_headers` file now reproduces the full CSP plus `frame-ancestors 'none'` (and `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`). Netlify and Cloudflare Pages read it automatically; hosts that ignore `_headers` (GitHub Pages, the built-in static publisher) fall back to the `<meta>` CSP, which still blocks XSS — only the frame-ancestors hardening is absent there. |
 | A2 | Low | **`style-src 'unsafe-inline'`** | Allows inline styles (the app sets dynamic `element.style` from JS). Does **not** enable script execution. Acceptable; could be tightened with nonces if desired, but not required. |
 | A3 | Info | **Device key in `localStorage`** | `lp_devkey` lives in `localStorage`. This is inherent to any client-side-only encryption: it defends against remote attackers, XSS, and cross-origin exfil (the CSP prevents key theft), but **not** against someone with direct access to the device's storage. Expected and documented — there is no way to hold a secret secret client-side. |
-| A4 | Info | **OAuth redirect URIs** | For SSO to work, the user must register the deployed origin as an authorized redirect/callback URI at each provider, and paste the matching client ID in Settings. Until then the button stays disabled. (GitHub additionally needs a CORS proxy per A7.) **Canonical origin once deployed to Cloudflare Pages: `https://linguapulse.pages.dev`** — use this in every OAuth provider, not the temporary preview link. |
+| A4 | Info | **OAuth redirect URIs** | For SSO to work, the user must register the deployed origin as an authorized redirect/callback URI at each provider, and paste the matching client ID in Settings. Until then the button stays disabled. (GitHub additionally needs a CORS proxy per A7.) **Canonical origin (verified live 2026-10-07): `https://linguapulse-1pg.pages.dev`** — register this exact URL in every OAuth provider, not the temporary preview link. |
 | A5 | Info | **Test-env console noise** | Two console errors seen in the headless test come from a **Kaspersky/QQ browser extension** (`beacon.cdn.qq.com`, `gc.kis.v2.scr.kaspersky-labs.com`) hitting the environment CSP — **not** from the app. `app.js` emitted zero errors. |
 | A6 | Info | **Local Ollama over `http://localhost`** | The strict `connect-src 'self' https:` (plus mixed-content rules) means a plaintext `http://localhost:11434` model endpoint works **only** when the app itself is served over `http`/`localhost` (e.g. `python -m http.server`). On the HTTPS deployment it is blocked. Use an `https`-reachable model endpoint, or run the app locally for Ollama. (Security-positive: it also blocks plaintext exfil.) |
-| A7 | Medium (functional) → **resolved (mitigated)** | **GitHub device flow is CORS-blocked in-browser** | GitHub's device/token endpoints deliberately send no `Access-Control-Allow-Origin`, so a direct browser `fetch` is blocked (confirmed via web search + live test). **Fix shipped:** GitHub sign-in is now proxy-aware — `githubDeviceFlow()` routes both calls through a configurable same-origin `githubProxy` URL set in Settings, and the GitHub button stays **disabled with a clear tooltip** until both a client ID *and* a proxy are configured. Ready-to-deploy proxies are included: `netlify/functions/github-proxy.js` + `netlify.toml` (redirect at `/api/github/*`), and a Cloudflare Pages Function at `functions/api/github/[[catchall]].js` (no `wrangler.toml` is required or shipped — Pages auto-detects `functions/`). On a host with that proxy the button works, otherwise it is safely disabled rather than failing at runtime. Google / Discord / Apple / Passkey remain unaffected. |
+| A7 | Medium (functional) → **resolved (mitigated)** | **GitHub device flow is CORS-blocked in-browser** | GitHub's device/token endpoints deliberately send no `Access-Control-Allow-Origin`, so a direct browser `fetch` is blocked (confirmed via web search + live test). **Fix shipped:** GitHub sign-in is now proxy-aware — `githubDeviceFlow()` routes both calls through a configurable same-origin `githubProxy` URL set in Settings, and the GitHub button stays **disabled with a clear tooltip** until both a client ID *and* a proxy are configured. Ready-to-deploy proxies are included: `netlify/functions/github-proxy.js` + `netlify.toml` (redirect at `/api/github/*`), and a Cloudflare Pages Function at `functions/api/github/[[catchall]].js` (no `wrangler.toml` is required or shipped — Pages auto-detects `functions/`). **Verified live on Cloudflare Pages (2026-10-07):** the Function deployed at `/api/github/*` — `OPTIONS` returns `204` with `Access-Control-Allow-Origin: *`, and a `POST` returns a byte-identical response to a direct github.com call. Set Settings → "GitHub CORS proxy" to `https://linguapulse-1pg.pages.dev/api/github` (plus a client ID) to enable GitHub sign-in. Where no proxy is configured the button stays safely disabled. Google / Discord / Apple / Passkey remain unaffected. |
 
 ---
 

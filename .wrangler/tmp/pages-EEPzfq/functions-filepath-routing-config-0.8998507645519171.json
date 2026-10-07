@@ -1,0 +1,13 @@
+{
+  "routes": [
+    {
+      "routePath": "/api/github/:catchall*",
+      "mountPath": "/api/github",
+      "method": "",
+      "module": [
+        "api/github/[[catchall]].js:onRequest"
+      ]
+    }
+  ],
+  "baseURL": "/"
+}
