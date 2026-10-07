@@ -1,0 +1,9 @@
+# Wrangler build cache (created by `wrangler pages deploy`)
+.wrangler/
+
+# Dependencies
+node_modules/
+
+# OS junk
+.DS_Store
+Thumbs.db
