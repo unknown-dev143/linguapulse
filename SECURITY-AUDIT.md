@@ -8,9 +8,9 @@
 
 ## 1. Live deployment & accessibility
 
-- **Live URL:** `https://d0d356c0dcb945c4a3e645b9ae1716a9.sg.agentos-app.run` → **HTTP 200**, publicly reachable, no auth wall. Anyone with the link can open and use it. This build includes the mic-translation enhancements (silence tuning, live mic meter, recognition recovery), the three fixes from 2026-10-06 (proxy-aware GitHub sign-in, history-lock reload UX, `frame-ancestors` header), the 2026-10-06 UI pass (PWA Install button, desktop keyboard shortcuts + focus rings + sizing polish), and PNG app icons (192/512) for a proper installed desktop icon.
-- **Recommended stable origin:** once deployed to Cloudflare Pages, use `https://linguapulse.pages.dev` everywhere (OAuth redirect URIs, README, links shared with others). The `d0d356c0…` WorkBuddy link reassigns the subdomain on every publish, so it is not a permanent home.
-- **Previous links `be9a30b4…`, `eda0eef5…`, `ceb376daf…`, and `22708a3d…` are dead** (the platform reassigns the subdomain on each publish).
+- **Live URL:** `https://11f551f67c4748b793571a5790b8af76.sg.agentos-app.run` → **HTTP 200**, publicly reachable, no auth wall. Anyone with the link can open and use it. This build includes the mic-translation enhancements (silence tuning, live mic meter, recognition recovery), the three fixes from 2026-10-06 (proxy-aware GitHub sign-in, history-lock reload UX, `frame-ancestors` header), the 2026-10-06 UI pass (PWA Install button, desktop keyboard shortcuts + focus rings + sizing polish), PNG app icons (192/512), and the five 2026-10-07 bug fixes (auto-detect no longer returns `ru-RU` for every language, export/shared coach score & wpm fields, iOS apple-touch-icon, service-worker offline crash).
+- **Recommended stable origin:** once deployed to Cloudflare Pages, use `https://linguapulse.pages.dev` everywhere (OAuth redirect URIs, README, links shared with others). The WorkBuddy link reassigns the subdomain on every publish, so it is not a permanent home.
+- **Previous links `be9a30b4…`, `eda0eef5…`, `ceb376daf…`, `22708a3d…`, and `d0d356c0…` are dead** (the platform reassigns the subdomain on each publish).
 - The app is a static client-side bundle; "accessible by other users" = the link is public. No server/backend processes requests.
 
 ---
