@@ -56,19 +56,15 @@ folder is auto-detected as a Pages Function.
 
 - **Enable GitHub sign-in** (optional): Settings → "GitHub CORS proxy" = `https://linguapulse.pages.dev/api/github`,
   plus your GitHub OAuth **client ID** in Settings → "SSO client IDs". The button enables once both are set.
-- **Alternative — connect the git repo:** Cloudflare dashboard → *Workers & Pages → Create → Pages →
-  Connect to Git*, pick `unknown-dev143/linguapulse`, then set all three build settings explicitly:
+> ✅ **Use the CLI commands above — do not use "Connect to Git".** Git-connected builds run your
+> deploy command with a restricted build token that cannot write to Pages (see the `10000`
+> troubleshooting note below), and the Cloudflare UI will not save a blank *Deploy command* field,
+> so there is no configuration of that flow which works for this project. `wrangler login` on your
+> own machine grants full permissions and deploys both the static app and `functions/`.
 
-  | Field | Value |
-  |---|---|
-  | Framework preset | **None** |
-  | Build command | *(leave the field blank — no text at all)* |
-  | Deploy command | *(leave the field blank — no text at all)* |
-  | Build output directory | **`.`** |
-
-  > ⚠️ "Blank" means an **empty input box**. Do not type the word `empty` into the field —
-  > Cloudflare runs whatever is in that box as a shell command, so it would fail with
-  > `/bin/sh: 1: empty: not found`.
+- **Zero-install alternative (static only):** Cloudflare dashboard → *Workers & Pages → Create →
+  Pages → Upload assets*, then upload `linguapulse.zip`. Quick, but the `functions/` GitHub proxy is
+  **not** deployed this way, so GitHub sign-in stays disabled.
 
 - Headers in `_headers` (`frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`,
   `Referrer-Policy: no-referrer`, plus the full CSP) are applied by Cloudflare Pages automatically.
