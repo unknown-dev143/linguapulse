@@ -83,14 +83,28 @@ Fix — in the project's *Settings → Builds & deployments → Build configurat
 clear the **Deploy command** (and leave **Build command** empty, **output directory** `.`), then
 *Retry deployment*. Pages then uploads the folder directly and picks up `functions/` on its own.
 
-If you'd rather keep a deploy command, the correct one is `npx wrangler pages deploy .` — never
-`npx wrangler deploy`.
+If you'd rather keep a deploy command, the correct one is:
+
+```bash
+npx wrangler pages deploy . --project-name linguapulse
+```
+
+— never `npx wrangler deploy`. This works inside Cloudflare's build environment because Pages
+injects `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` automatically, and it deploys both the
+static assets and `functions/`.
 
 #### Troubleshooting: `/bin/sh: 1: empty: not found`
 
 The **Deploy command** box contains the literal text `empty` (or any placeholder word). Cloudflare
 executes that box as a shell command. Clear it so the input is completely blank, or — if the UI won't
-save an empty value — put `npx wrangler pages deploy .` there instead.
+save an empty value — put the real command there instead:
+
+```bash
+npx wrangler pages deploy . --project-name linguapulse
+```
+
+(If **Build command** also refuses to save blank, `true` is a safe no-op — the output directory is
+still uploaded, and the deploy command above does the actual upload.)
 
 Rule of thumb: whatever you type into *Build command* / *Deploy command* is run by `/bin/sh`.
 Only real commands belong there.
