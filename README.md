@@ -57,9 +57,30 @@ auto-detected as a Pages Function.
 - **Enable GitHub sign-in** (optional): Settings → "GitHub CORS proxy" = `https://linguapulse.pages.dev/api/github`,
   plus your GitHub OAuth **client ID** in Settings → "SSO client IDs". The button enables once both are set.
 - **Alternative — connect the git repo:** Cloudflare dashboard → *Workers & Pages → Create → Pages →
-  Connect to Git*, pick `unknown-dev143/linguapulse`, build command **empty**, output directory **`.`**.
+  Connect to Git*, pick `unknown-dev143/linguapulse`, then set all three build settings explicitly:
+
+  | Field | Value |
+  |---|---|
+  | Framework preset | **None** |
+  | Build command | **empty** |
+  | Deploy command | **empty** |
+  | Build output directory | **`.`** |
+
 - Headers in `_headers` (`frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`,
   `Referrer-Policy: no-referrer`, plus the full CSP) are applied by Cloudflare Pages automatically.
+
+#### Troubleshooting: `✘ [ERROR] Missing entry-point to Worker script or to assets directory`
+
+Happens on **Connect to Git** when Cloudflare auto-detects `wrangler.toml` and fills in
+`npx wrangler deploy` as the deploy command. That is the **Workers** command, not the Pages one —
+it looks for `main` / `[assets]` and fails because this project ships neither.
+
+Fix — in the project's *Settings → Builds & deployments → Build configuration → Edit configuration*:
+clear the **Deploy command** (and leave **Build command** empty, **output directory** `.`), then
+*Retry deployment*. Pages then uploads the folder directly and picks up `functions/` on its own.
+
+If you'd rather keep a deploy command, the correct one is `npx wrangler pages deploy .` — never
+`npx wrangler deploy`.
 
 **Canonical origin:** `https://linguapulse.pages.dev`. Register this exact URL as the OAuth redirect /
 callback URI at each provider (Google, Apple, GitHub, Discord) before sign-in will work.
