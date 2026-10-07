@@ -50,9 +50,9 @@ npx wrangler login
 npx wrangler pages deploy . --project-name linguapulse
 ```
 
-`wrangler.toml` (`name = "linguapulse"`, `pages_build_output_dir = "."`) is picked up automatically.
-The site goes live at `https://linguapulse.pages.dev`. The included `functions/` folder is
-auto-detected as a Pages Function.
+No `wrangler.toml` is needed (and this repo deliberately does not ship one — see the troubleshooting
+notes below). The site goes live at `https://linguapulse.pages.dev`, and the included `functions/`
+folder is auto-detected as a Pages Function.
 
 - **Enable GitHub sign-in** (optional): Settings → "GitHub CORS proxy" = `https://linguapulse.pages.dev/api/github`,
   plus your GitHub OAuth **client ID** in Settings → "SSO client IDs". The button enables once both are set.
@@ -83,31 +83,33 @@ Fix — in the project's *Settings → Builds & deployments → Build configurat
 clear the **Deploy command** (and leave **Build command** empty, **output directory** `.`), then
 *Retry deployment*. Pages then uploads the folder directly and picks up `functions/` on its own.
 
-If you'd rather keep a deploy command, the correct one is:
+#### Troubleshooting: `Authentication error [code: 10000]` from `wrangler pages deploy`
 
-```bash
-npx wrangler pages deploy . --project-name linguapulse
+If you put a deploy command in the box, wrangler authenticates with the `CLOUDFLARE_API_TOKEN` that
+Pages injects into the build — and that token **does not carry Pages-write permission**, so the API
+rejects it even though your account is Super Administrator:
+
+```
+A request to the Cloudflare API (/accounts/<id>/pages/projects/linguapulse) failed.
+Authentication error [code: 10000]
 ```
 
-— never `npx wrangler deploy`. This works inside Cloudflare's build environment because Pages
-injects `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` automatically, and it deploys both the
-static assets and `functions/`.
+Fix: **remove the deploy command entirely.** Let Pages do the upload — it needs no token. Only use
+`npx wrangler pages deploy . --project-name linguapulse` from **your own machine**, where
+`wrangler login` has granted full permissions.
 
 #### Troubleshooting: `/bin/sh: 1: empty: not found`
 
 The **Deploy command** box contains the literal text `empty` (or any placeholder word). Cloudflare
-executes that box as a shell command. Clear it so the input is completely blank, or — if the UI won't
-save an empty value — put the real command there instead:
+executes that box as a shell command, so it must be **completely blank** — not filled with a word
+that describes blankness.
 
-```bash
-npx wrangler pages deploy . --project-name linguapulse
-```
-
-(If **Build command** also refuses to save blank, `true` is a safe no-op — the output directory is
-still uploaded, and the deploy command above does the actual upload.)
+If the UI appears to complain about an empty box, the cause is usually the **Framework preset** still
+being auto-detected as *Wrangler*. Set the preset to **None** first; blank Build/Deploy commands are
+then accepted normally. (This repo ships no `wrangler.toml`, so nothing should be auto-detected.)
 
 Rule of thumb: whatever you type into *Build command* / *Deploy command* is run by `/bin/sh`.
-Only real commands belong there.
+Only real commands belong there — never placeholders like `empty`, `none` or `n/a`.
 
 **Canonical origin:** `https://linguapulse.pages.dev`. Register this exact URL as the OAuth redirect /
 callback URI at each provider (Google, Apple, GitHub, Discord) before sign-in will work.
